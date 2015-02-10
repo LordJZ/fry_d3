@@ -35,7 +35,11 @@ out_dir = os.path.join(script_path, "definitions_bin")
 
 # find the function referencing all the binary protobuf representations
 DescriptorPool__InternalAddGeneratedFile = idc.FindBinary(INF_BASEADDR, SEARCH_DOWN,
-	"55 8B EC 6A FF 68 ? ? ? ? 64 A1 00 00 00 00 50 83 EC 38 A1 ? ? ? ? 33 C5 50 8D 45 F4 64 A3 00 00 00 00 C7 45 C4 00 00 00 00 E8 ? ? ? ?")
+	"55 8B EC 6A FF 68 ?  ?  ?  ?  64 A1 00 00 00 00 " +
+	"50 83 EC 34 A1 ?  ?  ?  ?  33 C5 89 45 F0 56 50 " +
+	"8D 45 F4 64 A3 00 00 00 00 8B 75 08 C7 45 C0 00 " +
+	"00 00 00 A0 ?  ?  ?  ?  84 C0 75 0F 68 ?  ?  ?  " +
+	"?  B9 6C D6 D3 01 E8 ? ? ? ?")
 
 for ref in idautils.XrefsTo(DescriptorPool__InternalAddGeneratedFile):
 	# TODO: make a GetParameters function
@@ -49,6 +53,10 @@ for ref in idautils.XrefsTo(DescriptorPool__InternalAddGeneratedFile):
 	gen_file_call = NextFunctionCall(ref.frm)
 	push_name = idautils.DecodePrecedingInstruction(gen_file_call)[0]
 	file_name = GetString(push_name.Op1.value)
+
+	idx = file_name.find('\0')
+	if idx >= 0:
+		file_name = file_name[:idx]
 
 	print file_name, hex(data), hex(length)
 	DumpProtoBin(out_dir, file_name, data, length)
